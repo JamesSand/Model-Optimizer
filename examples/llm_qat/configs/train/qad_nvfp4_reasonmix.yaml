@@ -1,0 +1,53 @@
+# QAD: Quantization-Aware Distillation with NVFP4 — Qwen3-8B on the reasoning-mix blend.
+# Based on qad_nvfp4.yaml; only model/teacher/output/dataset paths changed, all hyperparameters unchanged.
+# Run from examples/llm_qat/.
+#   - model_name_or_path : the QUANTIZED student checkpoint from quantize.py (step 1)
+#   - teacher_model      : the original full-precision (bf16) base Qwen3-8B (the distillation teacher)
+# distillation criterion/temperature/liger_jsd_beta left at DistillArguments defaults
+# (logits_loss / 1.0 / 0.0).
+
+# Model
+model_name_or_path: /home/zhizhousha/workspace/low-precision-project/model-and-data/models/Qwen3-8B-modelopt-qad-quantized-student  # quantized student from quantize.py (step 1)
+output_dir: /home/zhizhousha/workspace/low-precision-project/Model-Optimizer/outputs/qwen3-8b-qad-nvfp4-reasonmix
+attn_implementation: flash_attention_2
+
+# Distillation
+distill: true
+teacher_model: /home/zhizhousha/workspace/low-precision-project/model-and-data/models/Qwen3-8B
+
+# Dataset
+dataset_config: configs/dataset/blend_reasonmix.yaml
+train_samples: 20000
+eval_samples: 2000
+
+# Hyperparameters
+num_train_epochs: 1.0
+max_steps: 500  # total optimizer steps; overrides num_train_epochs when > 0
+learning_rate: 1e-5
+per_device_train_batch_size: 2
+per_device_eval_batch_size: 2
+gradient_accumulation_steps: 2
+model_max_length: 8192
+warmup_ratio: 0.05
+lr_scheduler_type: cosine
+use_liger_kernel: true
+manual_gc: true
+seed: 42
+do_train: true
+do_eval: true
+
+# Checkpointing
+load_best_model_at_end: true
+save_total_limit: 999
+save_steps: 50  # save every 50 steps; must be a multiple of eval_steps for load_best_model_at_end
+
+# Evaluation
+eval_on_start: true
+eval_strategy: steps
+eval_steps: 50
+
+# Logging
+logging_steps: 1
+report_to:
+  - tensorboard
+  - wandb

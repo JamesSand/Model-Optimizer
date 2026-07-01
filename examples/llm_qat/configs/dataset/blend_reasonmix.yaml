@@ -1,0 +1,22 @@
+# Reasoning-mix SFT blend for QAT/QAD of Qwen3-8B.
+# Single local source: reasonmix-sftmix-combined-Qwen3-8B (raw `default-Qwen3-8B` config,
+# OpenAI `messages` format). blend_size / splits kept identical to the default blend.yaml.
+#
+# NOTE: the dataset is a parquet-shard HF repo, not a `save_to_disk` dir, so we load it via
+# the `parquet` builder + a data_files glob (dataset_utils streams it). Pointing hf_path
+# straight at the directory would hit datasets.load_from_disk and fail.
+
+blend_size: 20000
+splits:
+  train: 0.90
+  eval: 0.05
+  test: 0.05
+
+sources:
+  - hf_path: parquet
+    split: train
+    ratio: 20000
+    category: reasoning
+    dataset_kwargs:
+      data_files:
+        train: /home/zhizhousha/workspace/low-precision-project/model-and-data/datasets/reasonmix-sftmix-combined-Qwen3-8B/default-Qwen3-8B/train-*.parquet
